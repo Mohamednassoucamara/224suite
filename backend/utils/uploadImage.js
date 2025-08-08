@@ -189,6 +189,7 @@ const uploadConfigs = {
 
 module.exports = {
   upload,
+  uploadImage: upload,
   uploadConfigs,
   deleteImage,
   optimizeImage,

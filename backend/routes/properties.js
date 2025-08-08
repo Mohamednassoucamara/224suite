@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Property = require('../models/Property');
 const { protect, authorize, checkOwnership } = require('../middleware/auth');
-const uploadImage = require('../utils/uploadImage');
+const { upload } = require('../utils/uploadImage');
 
 const router = express.Router();
 
@@ -351,7 +351,7 @@ router.post('/:id/favorite', protect, async (req, res) => {
 // @route   POST /api/properties/:id/images
 // @desc    Ajouter des images à une propriété
 // @access  Private (Propriétaire ou Agence assignée)
-router.post('/:id/images', protect, checkOwnership(Property), uploadImage.array('images', 10), async (req, res) => {
+router.post('/:id/images', protect, checkOwnership(Property), upload.array('images', 10), async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
     
