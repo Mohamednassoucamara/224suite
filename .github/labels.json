@@ -1,0 +1,112 @@
+[
+  {
+    "name": "bug",
+    "color": "d73a4a",
+    "description": "Something isn't working"
+  },
+  {
+    "name": "enhancement",
+    "color": "a2eeef",
+    "description": "New feature or request"
+  },
+  {
+    "name": "feature",
+    "color": "0052cc",
+    "description": "New functionality"
+  },
+  {
+    "name": "documentation",
+    "color": "0075ca",
+    "description": "Improvements or additions to documentation"
+  },
+  {
+    "name": "good first issue",
+    "color": "7057ff",
+    "description": "Good for newcomers"
+  },
+  {
+    "name": "help wanted",
+    "color": "008672",
+    "description": "Extra attention is needed"
+  },
+  {
+    "name": "question",
+    "color": "d876e3",
+    "description": "Further information is requested"
+  },
+  {
+    "name": "frontend",
+    "color": "0e8a16",
+    "description": "Frontend related changes"
+  },
+  {
+    "name": "backend",
+    "color": "fbca04",
+    "description": "Backend related changes"
+  },
+  {
+    "name": "database",
+    "color": "5319e7",
+    "description": "Database related changes"
+  },
+  {
+    "name": "ui/ux",
+    "color": "1d76db",
+    "description": "User interface and experience"
+  },
+  {
+    "name": "security",
+    "color": "ee0701",
+    "description": "Security related issues"
+  },
+  {
+    "name": "performance",
+    "color": "ff8c00",
+    "description": "Performance improvements"
+  },
+  {
+    "name": "testing",
+    "color": "c2e0c6",
+    "description": "Testing related changes"
+  },
+  {
+    "name": "deployment",
+    "color": "bfdadc",
+    "description": "Deployment related changes"
+  },
+  {
+    "name": "priority: high",
+    "color": "d93f0b",
+    "description": "High priority issue"
+  },
+  {
+    "name": "priority: medium",
+    "color": "fbca04",
+    "description": "Medium priority issue"
+  },
+  {
+    "name": "priority: low",
+    "color": "0e8a16",
+    "description": "Low priority issue"
+  },
+  {
+    "name": "triage",
+    "color": "d4c5f9",
+    "description": "Needs triage"
+  },
+  {
+    "name": "wontfix",
+    "color": "ffffff",
+    "description": "This will not be worked on"
+  },
+  {
+    "name": "duplicate",
+    "color": "cfd3d7",
+    "description": "This issue or pull request already exists"
+  },
+  {
+    "name": "invalid",
+    "color": "e4e669",
+    "description": "Something is wrong"
+  }
+]
