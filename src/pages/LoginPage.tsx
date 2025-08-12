@@ -1,25 +1,33 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, Home } from 'lucide-react';
 import { useNavigation } from '../App';
+import { useAuth } from '../hooks/useAuth';
 
 const LoginPage: React.FC = () => {
   const { setCurrentPage } = useNavigation();
+  const { login, error: authError, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulation d'une connexion
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await login(formData);
       setCurrentPage('dashboard');
-    }, 2000);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur de connexion';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -95,6 +103,15 @@ const LoginPage: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* Affichage des erreurs */}
+            {(error || authError) && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-red-600 text-sm">
+                  {error || authError}
+                </p>
+              </div>
+            )}
 
             <div className="flex items-center justify-between">
               <label className="flex items-center">

@@ -1,10 +1,14 @@
 const mongoose = require('mongoose');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 // Configuration de la connexion MongoDB
 const connectDB = async () => {
   try {
     console.log('🔌 Tentative de connexion à MongoDB...');
+    console.log('🔍 URI MongoDB:', process.env.MONGODB_URI ? 'Présente' : 'Manquante');
+    console.log('📁 Répertoire courant:', __dirname);
+    console.log('🔧 Variables d\'environnement:', Object.keys(process.env).filter(key => key.includes('MONGODB')));
     
     const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/224suite', {
       useNewUrlParser: true,

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, Phone, Building2, Home, Search, Home as HomeIcon } from 'lucide-react';
 import { useNavigation } from '../App';
+import { useAuth } from '../hooks/useAuth';
 
 const RegisterPage: React.FC = () => {
   const { setCurrentPage } = useNavigation();
+  const { register, error: authError, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [userType, setUserType] = useState<'owner' | 'agency' | 'seeker' | ''>('');
   const [formData, setFormData] = useState({
@@ -19,6 +21,7 @@ const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleUserTypeSelect = (type: 'owner' | 'agency' | 'seeker') => {
     setUserType(type);
@@ -28,12 +31,44 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulation d'une inscription
-    setTimeout(() => {
+    // Validation des mots de passe
+    if (formData.password !== formData.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas');
       setIsLoading(false);
+      return;
+    }
+    
+    // Validation des champs requis
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      setError('Veuillez remplir tous les champs obligatoires');
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      const userData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        userType: userType,
+        ...(userType === 'agency' && {
+          agencyName: formData.agencyName,
+          agencyLicense: formData.agencyLicense
+        })
+      };
+      
+      await register(userData);
       setCurrentPage('dashboard');
-    }, 2000);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur d\'inscription';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -160,6 +195,15 @@ const RegisterPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Affichage des erreurs */}
+              {(error || authError) && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-red-600 text-sm">
+                    {error || authError}
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

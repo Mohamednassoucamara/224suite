@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Home, Building, Users, Star, ArrowRight, Phone, Mail, MessageCircle } from 'lucide-react';
 import { useNavigation } from '../App';
+import ApiTest from '../components/ApiTest';
+import RegisterTest from '../components/RegisterTest';
 
 const HomePage: React.FC = () => {
   const { setCurrentPage } = useNavigation();
@@ -334,6 +336,21 @@ const HomePage: React.FC = () => {
                   Envoyer le message
                 </button>
               </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Test API Section - À supprimer en production */}
+      <section className="py-16 bg-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+              Tests d'Intégration API
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              <ApiTest />
+              <RegisterTest />
             </div>
           </div>
         </div>

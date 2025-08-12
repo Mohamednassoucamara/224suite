@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { protect, loginLimiter } = require('../middleware/auth');
-const sendEmail = require('../utils/sendEmail');
+const { sendEmail } = require('../utils/sendEmail');
 const crypto = require('crypto');
 
 const router = express.Router();
@@ -54,49 +54,23 @@ router.post('/register', [
       });
     }
 
-    // Créer l'utilisateur
+    // Créer l'utilisateur avec vérification automatique pour les tests
     const user = await User.create({
       firstName,
       lastName,
       email,
       phone,
       password,
-      userType
+      userType,
+      isVerified: true // Marquer comme vérifié pour les tests
     });
-
-    // Générer le token de vérification d'email
-    const verificationToken = user.getEmailVerificationToken();
-    await user.save();
-
-    // Envoyer l'email de vérification
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-    
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Vérification de votre compte 224Suite',
-        message: `
-          <h2>Bienvenue sur 224Suite !</h2>
-          <p>Merci de vous être inscrit. Veuillez cliquer sur le lien ci-dessous pour vérifier votre compte :</p>
-          <a href="${verificationUrl}" style="background-color: #f97316; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0;">
-            Vérifier mon compte
-          </a>
-          <p>Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :</p>
-          <p>${verificationUrl}</p>
-          <p>Ce lien expire dans 24 heures.</p>
-        `
-      });
-    } catch (error) {
-      console.error('Erreur envoi email:', error);
-      // Continuer même si l'email échoue
-    }
 
     // Générer le token JWT
     const token = user.getSignedJwtToken();
 
     res.status(201).json({
       success: true,
-      message: 'Compte créé avec succès. Veuillez vérifier votre email.',
+      message: 'Compte créé avec succès !',
       token,
       user: {
         id: user._id,
