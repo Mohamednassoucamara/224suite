@@ -8,4 +8,4 @@ cmds = ["npm ci"]
 cmds = ["echo 'Backend build completed'"]
 
 [start]
-cmd = "cd backend && npm start"
+cmd = "cd backend && node start-simple.js"
