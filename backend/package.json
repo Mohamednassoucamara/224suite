@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "dev:config": "node start-dev.js",
     "test": "jest",
     "test:mongodb": "node test-mongodb.js"
   },
