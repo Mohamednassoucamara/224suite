@@ -33,10 +33,10 @@ const AboutPage: React.FC = () => {
 
   const team = [
     {
-      name: 'Mamadou Diallo',
+      name: 'Mohamed Nassou Camara',
       role: 'Fondateur & CEO',
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
-      description: 'Expert en immobilier avec 15 ans d\'expérience à Conakry.'
+      description: 'Ingénieur informaticien.'
     },
     {
       name: 'Fatoumata Camara',
