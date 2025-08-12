@@ -82,24 +82,23 @@ app.use('*', (req, res) => {
 });
 
 // Connexion à MongoDB
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/224suite', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log(`MongoDB connecté: ${conn.connection.host}`);
-  } catch (error) {
-    console.error('Erreur de connexion MongoDB:', error.message);
-    process.exit(1);
-  }
-};
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log('✅ Connexion à MongoDB établie');
+})
+.catch((err) => {
+  console.error('❌ Erreur de connexion MongoDB:', err.message);
+  console.log('⚠️  L\'application continue sans base de données');
+  console.log('💡 Configurez MONGODB_URI dans Railway pour activer la base de données');
+});
 
 // Démarrage du serveur
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  await connectDB();
   app.listen(PORT, () => {
     console.log(`🚀 Serveur 224Suite démarré sur le port ${PORT}`);
     console.log(`📱 Mode: ${process.env.NODE_ENV || 'development'}`);
