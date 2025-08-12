@@ -4,7 +4,7 @@
   "description": "Backend API pour la plateforme immobilière 224Suite",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node start-simple.js",
     "dev": "nodemon server.js",
     "dev:config": "node start-dev.js",
     "test": "jest",
