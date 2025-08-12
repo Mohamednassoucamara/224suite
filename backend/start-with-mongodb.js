@@ -39,10 +39,32 @@ let db = null;
 
 // Connexion à MongoDB
 async function connectToMongoDB() {
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/224suite';
+  let uri;
+  
+  // Essayer d'abord MONGODB_URI complète
+  if (process.env.MONGODB_URI) {
+    uri = process.env.MONGODB_URI;
+  } 
+  // Sinon, construire l'URI à partir des variables séparées
+  else if (process.env.MONGODB_HOST && process.env.MONGODB_USER && process.env.MONGODB_PASS) {
+    uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASS}@${process.env.MONGODB_HOST}/224suite?retryWrites=true&w=majority&appName=224suite-cluster`;
+  } 
+  // Fallback local
+  else {
+    uri = 'mongodb://localhost:27017/224suite';
+  }
+  
+  console.log('🔍 Tentative de connexion MongoDB...');
+  console.log('📡 URI:', uri.replace(process.env.MONGODB_PASS || '', '***'));
   
   try {
-    mongoClient = new MongoClient(uri);
+    mongoClient = new MongoClient(uri, {
+      serverApi: {
+        version: '1',
+        strict: true,
+        deprecationErrors: true,
+      }
+    });
     await mongoClient.connect();
     db = mongoClient.db('224suite');
     
@@ -52,7 +74,7 @@ async function connectToMongoDB() {
   } catch (error) {
     console.error('❌ Erreur de connexion MongoDB:', error.message);
     console.log('⚠️  L\'application continue sans base de données');
-    console.log('💡 Configurez MONGODB_URI dans Railway pour activer la base de données');
+    console.log('💡 Vérifiez les variables MONGODB_HOST, MONGODB_USER, MONGODB_PASS');
   }
 }
 
