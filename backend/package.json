@@ -4,11 +4,12 @@
   "description": "Backend API pour la plateforme immobilière 224Suite",
   "main": "server.js",
   "scripts": {
-    "start": "node start-with-mongodb.js",
+    "start": "node server.js",
     "dev": "nodemon server.js",
     "dev:config": "node start-dev.js",
     "test": "jest",
-    "test:mongodb": "node test-mongodb.js"
+    "test:mongodb": "node test-mongodb.js",
+    "start:mongo-test": "node start-with-mongodb.js"
   },
   "keywords": [
     "immobilier",

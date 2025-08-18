@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Users, Target, Award, Shield, Globe, Heart, Star } from 'lucide-react';
+import { Home, Users, Target, Shield, Globe, Heart, Star } from 'lucide-react';
 import { useNavigation } from '../App';
 import Breadcrumb from '../components/Breadcrumb';
 

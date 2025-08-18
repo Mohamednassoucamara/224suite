@@ -47,7 +47,7 @@ const SearchPage: React.FC = () => {
       });
       setFilters(newFilters);
     }
-  }, [params]);
+  }, [params, filters]);
 
   // Données de démonstration améliorées
   const mockProperties: Property[] = useMemo(() => [

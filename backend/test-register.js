@@ -15,7 +15,8 @@ const testRegister = async () => {
 
     console.log('📤 Données envoyées:', testUser);
 
-    const response = await axios.post('http://localhost:5000/api/auth/register', testUser, {
+    const baseURL = process.env.TEST_API_URL || 'http://localhost:5000';
+    const response = await axios.post(`${baseURL}/api/auth/register`, testUser, {
       headers: {
         'Content-Type': 'application/json'
       },

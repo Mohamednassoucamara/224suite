@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Search, Plus, User, Heart, MapPin, Info, Mail } from 'lucide-react';
+import { Home, Search, Plus, User, Info, Mail } from 'lucide-react';
 import { useNavigation } from '../App';
 
 const QuickNav: React.FC = () => {

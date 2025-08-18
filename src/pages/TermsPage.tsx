@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Shield, Users, CreditCard, AlertTriangle, CheckCircle } from 'lucide-react';
+import { FileText, Users } from 'lucide-react';
 import { useNavigation } from '../App';
 import Breadcrumb from '../components/Breadcrumb';
 

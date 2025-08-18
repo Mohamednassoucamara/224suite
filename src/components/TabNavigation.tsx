@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigation } from '../App';
 
 interface Tab {
   id: string;
