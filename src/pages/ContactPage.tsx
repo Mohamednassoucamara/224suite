@@ -27,7 +27,7 @@ const ContactPage: React.FC = () => {
     {
       icon: <Phone className="w-6 h-6" />,
       title: 'Téléphone',
-      details: ['+224 XXX XXX XXX', '+224 XXX XXX XXX'],
+      details: ['+224 611925997'],
       color: 'bg-green-100 text-green-600'
     },
     {
@@ -316,7 +316,7 @@ const ContactPage: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              onClick={() => window.open('tel:+224XXXXXXXXX', '_self')}
+              onClick={() => window.open('tel:+224611925997', '_self')}
               className="btn-secondary bg-white text-primary-600 hover:bg-gray-100 flex items-center justify-center"
             >
               <Phone className="w-4 h-4 mr-2" />
