@@ -54,7 +54,7 @@ const RegisterPage: React.FC = () => {
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        userType: userType,
+        role: userType,
         ...(userType === 'agency' && {
           agencyName: formData.agencyName,
           agencyLicense: formData.agencyLicense
