@@ -135,7 +135,10 @@ const HomePage: React.FC = () => {
               <p className="text-gray-600 mb-6">
                 Trouvez le bien de vos rêves ou vendez votre propriété en toute confiance
               </p>
-              <button className="text-primary-600 hover:text-primary-700 font-medium">
+              <button 
+                onClick={() => setCurrentPage('search')}
+                className="text-primary-600 hover:text-primary-700 font-medium"
+              >
                 En savoir plus <ArrowRight className="w-4 h-4 inline ml-1" />
               </button>
             </div>
@@ -150,7 +153,10 @@ const HomePage: React.FC = () => {
               <p className="text-gray-600 mb-6">
                 Louez ou mettez en location votre bien avec nos services de gestion locative
               </p>
-              <button className="text-primary-600 hover:text-primary-700 font-medium">
+              <button 
+                onClick={() => setCurrentPage('search')}
+                className="text-primary-600 hover:text-primary-700 font-medium"
+              >
                 En savoir plus <ArrowRight className="w-4 h-4 inline ml-1" />
               </button>
             </div>
@@ -165,7 +171,10 @@ const HomePage: React.FC = () => {
               <p className="text-gray-600 mb-6">
                 Bénéficiez d'un accompagnement personnalisé pour vos projets immobiliers
               </p>
-              <button className="text-primary-600 hover:text-primary-700 font-medium">
+              <button 
+                onClick={() => setCurrentPage('contact')}
+                className="text-primary-600 hover:text-primary-700 font-medium"
+              >
                 En savoir plus <ArrowRight className="w-4 h-4 inline ml-1" />
               </button>
             </div>
