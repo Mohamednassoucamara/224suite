@@ -50,10 +50,10 @@ export const AuthProvider = ({ children }) => {
       const response = await apiService.login(credentials);
       
       // Sauvegarder le token et les données utilisateur
-      localStorage.setItem('224suite_token', response.data.token);
-      localStorage.setItem('224suite_user', JSON.stringify(response.data.user));
+      localStorage.setItem('224suite_token', response.token);
+      localStorage.setItem('224suite_user', JSON.stringify(response.user));
       
-      setUser(response.data.user);
+      setUser(response.user);
       return response;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur de connexion';
@@ -73,10 +73,10 @@ export const AuthProvider = ({ children }) => {
       const response = await apiService.register(userData);
       
       // Optionnel : connecter automatiquement après inscription
-      if (response.data.token) {
-        localStorage.setItem('224suite_token', response.data.token);
-        localStorage.setItem('224suite_user', JSON.stringify(response.data.user));
-        setUser(response.data.user);
+      if (response.token) {
+        localStorage.setItem('224suite_token', response.token);
+        localStorage.setItem('224suite_user', JSON.stringify(response.user));
+        setUser(response.user);
       }
       
       return response;
