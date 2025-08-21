@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const db = require('../models');
 
 // Middleware pour protéger les routes
 const protect = async (req, res, next) => {
@@ -22,8 +22,8 @@ const protect = async (req, res, next) => {
     // Vérifier le token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Récupérer l'utilisateur
-    const user = await User.findById(decoded.id).select('-password');
+    // Récupérer l'utilisateur (Sequelize)
+    const user = await db.User.findByPk(decoded.id);
 
     if (!user) {
       return res.status(401).json({
@@ -32,7 +32,6 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // Vérifier si l'utilisateur est vérifié
     if (!user.isVerified) {
       return res.status(403).json({
         success: false,
@@ -51,12 +50,12 @@ const protect = async (req, res, next) => {
 };
 
 // Middleware pour autoriser certains types d'utilisateurs
-const authorize = (...userTypes) => {
+const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!userTypes.includes(req.user.userType)) {
+    if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        error: `Accès refusé. Types autorisés: ${userTypes.join(', ')}`
+        error: `Accès refusé. Rôles autorisés: ${roles.join(', ')}`
       });
     }
     next();
@@ -78,7 +77,7 @@ const requirePremium = async (req, res, next) => {
 const checkOwnership = (model) => {
   return async (req, res, next) => {
     try {
-      const resource = await model.findById(req.params.id);
+      const resource = await model.findByPk(req.params.id);
       
       if (!resource) {
         return res.status(404).json({
@@ -87,8 +86,8 @@ const checkOwnership = (model) => {
         });
       }
 
-      // Vérifier si l'utilisateur est le propriétaire ou un admin
-      if (resource.owner.toString() !== req.user._id.toString() && req.user.userType !== 'admin') {
+      // Vérifier si l'utilisateur est le propriétaire ou un admin (champ ownerId côté Sequelize)
+      if (String(resource.ownerId) !== String(req.user.id) && req.user.role !== 'admin') {
         return res.status(403).json({
           success: false,
           error: 'Accès refusé. Vous n\'êtes pas autorisé à modifier cette ressource.'
@@ -109,7 +108,8 @@ const checkOwnership = (model) => {
 // Middleware pour vérifier les permissions d'agence
 const checkAgencyPermission = async (req, res, next) => {
   try {
-    const property = await require('../models/Property').findById(req.params.id);
+    const propertyModel = db.Property;
+    const property = await propertyModel.findByPk(req.params.id);
     
     if (!property) {
       return res.status(404).json({
@@ -118,10 +118,10 @@ const checkAgencyPermission = async (req, res, next) => {
       });
     }
 
-    // Vérifier si l'utilisateur est le propriétaire, l'agence assignée, ou un admin
-    const isOwner = property.owner.toString() === req.user._id.toString();
-    const isAgency = property.agency && property.agency.toString() === req.user._id.toString();
-    const isAdmin = req.user.userType === 'admin';
+    // Vérifier si l'utilisateur est le propriétaire (ownerId), l'agence assignée (agencyId), ou un admin
+    const isOwner = String(property.ownerId) === String(req.user.id);
+    const isAgency = property.agencyId && String(property.agencyId) === String(req.user.id);
+    const isAdmin = req.user.role === 'admin';
 
     if (!isOwner && !isAgency && !isAdmin) {
       return res.status(403).json({

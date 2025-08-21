@@ -1,260 +1,244 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
 
-const propertySchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, 'Le titre est requis'],
-    trim: true,
-    maxlength: [100, 'Le titre ne peut pas dépasser 100 caractères']
-  },
-  description: {
-    type: String,
-    required: [true, 'La description est requise'],
-    maxlength: [2000, 'La description ne peut pas dépasser 2000 caractères']
-  },
-  type: {
-    type: String,
-    enum: ['appartement', 'maison', 'villa', 'studio', 'terrain', 'bureau', 'commerce'],
-    required: [true, 'Le type de bien est requis']
-  },
-  transactionType: {
-    type: String,
-    enum: ['vente', 'location'],
-    required: [true, 'Le type de transaction est requis']
-  },
-  price: {
-    type: Number,
-    required: [true, 'Le prix est requis'],
-    min: [0, 'Le prix ne peut pas être négatif']
-  },
-  currency: {
-    type: String,
-    enum: ['GNF', 'USD', 'EUR'],
-    default: 'GNF'
-  },
-  location: {
-    address: {
-      type: String,
-      required: [true, 'L\'adresse est requise']
+module.exports = (sequelize, Sequelize) => {
+  const Property = sequelize.define('Property', {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
     },
-    neighborhood: {
-      type: String,
-      required: [true, 'Le quartier est requis']
+    title: {
+      type: DataTypes.STRING(200),
+      allowNull: false,
+      validate: {
+        len: [10, 200],
+        notEmpty: true
+      }
     },
-    city: {
-      type: String,
-      default: 'Conakry'
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      validate: {
+        len: [50, 5000],
+        notEmpty: true
+      }
     },
-    coordinates: {
-      lat: Number,
-      lng: Number
-    }
-  },
-  features: {
+    type: {
+      type: DataTypes.ENUM('apartment', 'house', 'villa', 'land', 'commercial', 'office'),
+      allowNull: false
+    },
+    status: {
+      type: DataTypes.ENUM('for-sale', 'for-rent', 'sold', 'rented'),
+      defaultValue: 'for-sale',
+      allowNull: false
+    },
+    price: {
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+      validate: {
+        min: 0,
+        notNull: true
+      }
+    },
+    currency: {
+      type: DataTypes.ENUM('USD', 'EUR', 'GNF'),
+      defaultValue: 'USD',
+      allowNull: false
+    },
+    rentPeriod: {
+      type: DataTypes.ENUM('monthly', 'yearly'),
+      allowNull: true
+    },
     bedrooms: {
-      type: Number,
-      min: [0, 'Le nombre de chambres ne peut pas être négatif']
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 0
+      }
     },
     bathrooms: {
-      type: Number,
-      min: [0, 'Le nombre de salles de bain ne peut pas être négatif']
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 0
+      }
     },
     area: {
-      type: Number,
-      required: [true, 'La surface est requise'],
-      min: [1, 'La surface doit être supérieure à 0']
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      validate: {
+        min: 0
+      }
     },
-    parking: {
-      type: Number,
-      default: 0,
-      min: [0, 'Le nombre de places de parking ne peut pas être négatif']
+    areaUnit: {
+      type: DataTypes.ENUM('m2', 'sqft', 'hectares', 'acres'),
+      defaultValue: 'm2'
     },
     floors: {
-      type: Number,
-      default: 1,
-      min: [1, 'Le nombre d\'étages doit être au moins 1']
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 0
+      }
     },
-    yearBuilt: Number,
-    furnished: {
-      type: Boolean,
-      default: false
+    yearBuilt: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 1800,
+        max: new Date().getFullYear()
+      }
+    },
+    address: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      validate: {
+        notEmpty: true
+      }
+    },
+    coordinates: {
+      type: DataTypes.JSONB, // Changé de GEOMETRY à JSONB pour stocker lat/lng
+      allowNull: true
+    },
+    features: {
+      type: DataTypes.JSONB,
+      defaultValue: []
+    },
+    amenities: {
+      type: DataTypes.JSONB,
+      defaultValue: []
+    },
+    images: {
+      type: DataTypes.JSONB,
+      defaultValue: []
+    },
+    documents: {
+      type: DataTypes.JSONB,
+      defaultValue: []
+    },
+    isFeatured: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    isPremium: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    views: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    favorites: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
+    },
+    ownerId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'id'
+      }
     }
-  },
-  amenities: [{
-    type: String,
-    enum: [
-      'climatisation', 'ascenseur', 'garde', 'eau_courante', 'electricite_24h',
-      'internet', 'balcon', 'terrasse', 'jardin', 'piscine', 'gym',
-      'parking_securise', 'cuisine_equipee', 'meuble', 'chauffage',
-      'systeme_securite', 'interphone', 'vide_ordures'
+  }, {
+    tableName: 'properties',
+    timestamps: true,
+    indexes: [
+      {
+        fields: ['type']
+      },
+      {
+        fields: ['status']
+      },
+      {
+        fields: ['price']
+      },
+      {
+        fields: ['isFeatured']
+      },
+      {
+        fields: ['isPremium']
+      },
+      {
+        fields: ['ownerId']
+      }
     ]
-  }],
-  images: [{
-    url: {
-      type: String,
-      required: true
-    },
-    publicId: String,
-    isMain: {
-      type: Boolean,
-      default: false
-    },
-    caption: String
-  }],
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Le propriétaire est requis']
-  },
-  agency: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  status: {
-    type: String,
-    enum: ['active', 'pending', 'sold', 'rented', 'inactive'],
-    default: 'pending'
-  },
-  isPremium: {
-    type: Boolean,
-    default: false
-  },
-  isFeatured: {
-    type: Boolean,
-    default: false
-  },
-  views: {
-    type: Number,
-    default: 0
-  },
-  favorites: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  contactInfo: {
-    phone: String,
-    email: String,
-    whatsapp: String
-  },
-  availability: {
-    availableFrom: Date,
-    availableUntil: Date,
-    immediate: {
-      type: Boolean,
-      default: true
+  });
+
+  // Associations
+  Property.associate = function(models) {
+    Property.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner'
+    });
+    
+    Property.hasMany(models.Appointment, {
+      foreignKey: 'propertyId',
+      as: 'appointments'
+    });
+    
+    Property.hasMany(models.Message, {
+      foreignKey: 'propertyId',
+      as: 'messages'
+    });
+  };
+
+  // Méthodes d'instance
+  Property.prototype.incrementViews = function() {
+    this.views += 1;
+    return this.save();
+  };
+
+  Property.prototype.incrementFavorites = function() {
+    this.favorites += 1;
+    return this.save();
+  };
+
+  Property.prototype.decrementFavorites = function() {
+    if (this.favorites > 0) {
+      this.favorites -= 1;
+      return this.save();
     }
-  },
-  documents: [{
-    name: String,
-    url: String,
-    type: String
-  }],
-  virtualTour: {
-    type: String
-  },
-  neighborhood: {
-    description: String,
-    nearby: {
-      schools: [String],
-      hospitals: [String],
-      markets: [String],
-      transport: [String],
-      restaurants: [String]
+    return Promise.resolve(this);
+  };
+
+  // Méthodes de classe
+  Property.findByFilters = function(filters) {
+    const where = {};
+    
+    if (filters.type) where.type = filters.type;
+    if (filters.status) where.status = filters.status;
+    if (filters.minPrice) where.price = { [Sequelize.Op.gte]: filters.minPrice };
+    if (filters.maxPrice) where.price = { ...where.price, [Sequelize.Op.lte]: filters.maxPrice };
+    if (filters.bedrooms) where.bedrooms = { [Sequelize.Op.gte]: filters.bedrooms };
+    if (filters.bathrooms) where.bathrooms = { [Sequelize.Op.gte]: filters.bathrooms };
+    if (filters.minArea) where.area = { [Sequelize.Op.gte]: filters.minArea };
+    if (filters.maxArea) where.area = { ...where.area, [Sequelize.Op.lte]: filters.maxArea };
+    if (filters.location) {
+      where.address = {
+        [Sequelize.Op.or]: [
+          { city: { [Sequelize.Op.iLike]: `%${filters.location}%` } },
+          { neighborhood: { [Sequelize.Op.iLike]: `%${filters.location}%` } }
+        ]
+      };
     }
-  },
-  energyRating: {
-    type: String,
-    enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'non_renseigne']
-  },
-  tags: [String]
-}, {
-  timestamps: true
-});
+    
+    return this.findAll({
+      where,
+      include: [
+        {
+          model: sequelize.models.User,
+          as: 'owner',
+          attributes: ['id', 'firstName', 'lastName', 'phone', 'email']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+  };
 
-// Index pour améliorer les performances
-propertySchema.index({ status: 1, type: 1 });
-propertySchema.index({ 'location.city': 1, 'location.neighborhood': 1 });
-propertySchema.index({ price: 1 });
-propertySchema.index({ isPremium: 1, isFeatured: 1 });
-propertySchema.index({ owner: 1 });
-propertySchema.index({ createdAt: -1 });
-
-// Méthode pour formater le prix
-propertySchema.methods.formatPrice = function() {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: this.currency,
-    minimumFractionDigits: 0
-  }).format(this.price);
-};
-
-// Méthode pour incrémenter les vues
-propertySchema.methods.incrementViews = function() {
-  this.views += 1;
-  return this.save();
-};
-
-// Méthode pour ajouter aux favoris
-propertySchema.methods.addToFavorites = function(userId) {
-  if (!this.favorites.includes(userId)) {
-    this.favorites.push(userId);
-  }
-  return this.save();
-};
-
-// Méthode pour retirer des favoris
-propertySchema.methods.removeFromFavorites = function(userId) {
-  this.favorites = this.favorites.filter(id => id.toString() !== userId.toString());
-  return this.save();
-};
-
-// Méthode pour vérifier si un utilisateur a mis en favori
-propertySchema.methods.isFavoritedBy = function(userId) {
-  return this.favorites.includes(userId);
-};
-
-// Méthode pour obtenir l'image principale
-propertySchema.methods.getMainImage = function() {
-  const mainImage = this.images.find(img => img.isMain);
-  return mainImage ? mainImage.url : (this.images[0] ? this.images[0].url : null);
-};
-
-// Méthode pour calculer le score de pertinence
-propertySchema.methods.calculateRelevanceScore = function() {
-  let score = 0;
-  
-  // Score de base
-  score += 10;
-  
-  // Bonus pour premium
-  if (this.isPremium) score += 50;
-  
-  // Bonus pour featured
-  if (this.isFeatured) score += 30;
-  
-  // Bonus pour les vues
-  score += Math.min(this.views * 0.1, 20);
-  
-  // Bonus pour les favoris
-  score += this.favorites.length * 2;
-  
-  // Bonus pour les images
-  score += Math.min(this.images.length * 5, 25);
-  
-  // Bonus pour les informations complètes
-  if (this.description.length > 200) score += 10;
-  if (this.amenities.length > 5) score += 10;
-  if (this.neighborhood.description) score += 5;
-  
-  return score;
-};
-
-// Middleware pour s'assurer qu'il y a une image principale
-propertySchema.pre('save', function(next) {
-  if (this.images.length > 0 && !this.images.some(img => img.isMain)) {
-    this.images[0].isMain = true;
-  }
-  next();
-});
-
-module.exports = mongoose.model('Property', propertySchema); 
+  return Property;
+}; 

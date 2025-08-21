@@ -1,242 +1,232 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
 
-const subscriptionSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'L\'utilisateur est requis']
-  },
-  plan: {
-    type: String,
-    enum: ['basic', 'premium', 'agency', 'enterprise'],
-    required: [true, 'Le plan est requis']
-  },
-  status: {
-    type: String,
-    enum: ['active', 'cancelled', 'expired', 'pending'],
-    default: 'pending'
-  },
-  startDate: {
-    type: Date,
-    required: [true, 'La date de début est requise']
-  },
-  endDate: {
-    type: Date,
-    required: [true, 'La date de fin est requise']
-  },
-  amount: {
-    type: Number,
-    required: [true, 'Le montant est requis'],
-    min: [0, 'Le montant ne peut pas être négatif']
-  },
-  currency: {
-    type: String,
-    enum: ['GNF', 'USD', 'EUR'],
-    default: 'GNF'
-  },
-  billingCycle: {
-    type: String,
-    enum: ['monthly', 'quarterly', 'yearly'],
-    default: 'monthly'
-  },
-  paymentMethod: {
-    type: String,
-    enum: ['card', 'mobile_money', 'bank_transfer', 'cash'],
-    required: [true, 'La méthode de paiement est requise']
-  },
-  paymentStatus: {
-    type: String,
-    enum: ['pending', 'completed', 'failed', 'refunded'],
-    default: 'pending'
-  },
-  transactionId: {
-    type: String,
-    unique: true
-  },
-  features: {
-    maxProperties: {
-      type: Number,
-      default: 5
+module.exports = (sequelize, Sequelize) => {
+  const Subscription = sequelize.define('Subscription', {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
     },
-    featuredListings: {
-      type: Number,
-      default: 0
+    plan: {
+      type: DataTypes.ENUM('basic', 'premium', 'enterprise'),
+      defaultValue: 'basic',
+      allowNull: false
     },
-    prioritySupport: {
-      type: Boolean,
-      default: false
+    status: {
+      type: DataTypes.ENUM('active', 'inactive', 'cancelled', 'expired', 'pending'),
+      defaultValue: 'inactive',
+      allowNull: false
     },
-    analytics: {
-      type: Boolean,
-      default: false
-    },
-    virtualTours: {
-      type: Boolean,
-      default: false
-    },
-    advancedSearch: {
-      type: Boolean,
-      default: false
-    },
-    emailNotifications: {
-      type: Boolean,
-      default: true
-    },
-    smsNotifications: {
-      type: Boolean,
-      default: false
-    }
-  },
-  autoRenew: {
-    type: Boolean,
-    default: true
-  },
-  cancellationReason: String,
-  cancelledAt: Date,
-  cancelledBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  notes: String
-}, {
-  timestamps: true
-});
-
-// Index pour améliorer les performances
-subscriptionSchema.index({ user: 1, status: 1 });
-subscriptionSchema.index({ status: 1, endDate: 1 });
-subscriptionSchema.index({ plan: 1 });
-subscriptionSchema.index({ paymentStatus: 1 });
-
-// Méthode pour vérifier si l'abonnement est actif
-subscriptionSchema.methods.isActive = function() {
-  return this.status === 'active' && this.endDate > new Date();
-};
-
-// Méthode pour activer l'abonnement
-subscriptionSchema.methods.activate = function() {
-  this.status = 'active';
-  this.startDate = new Date();
-  return this.save();
-};
-
-// Méthode pour annuler l'abonnement
-subscriptionSchema.methods.cancel = function(userId, reason) {
-  this.status = 'cancelled';
-  this.cancelledBy = userId;
-  this.cancelledAt = new Date();
-  this.cancellationReason = reason;
-  this.autoRenew = false;
-  return this.save();
-};
-
-// Méthode pour renouveler l'abonnement
-subscriptionSchema.methods.renew = function() {
-  const currentEndDate = new Date(this.endDate);
-  let newEndDate;
-  
-  switch (this.billingCycle) {
-    case 'monthly':
-      newEndDate = new Date(currentEndDate.setMonth(currentEndDate.getMonth() + 1));
-      break;
-    case 'quarterly':
-      newEndDate = new Date(currentEndDate.setMonth(currentEndDate.getMonth() + 3));
-      break;
-    case 'yearly':
-      newEndDate = new Date(currentEndDate.setFullYear(currentEndDate.getFullYear() + 1));
-      break;
-    default:
-      newEndDate = new Date(currentEndDate.setMonth(currentEndDate.getMonth() + 1));
-  }
-  
-  this.endDate = newEndDate;
-  return this.save();
-};
-
-// Méthode pour obtenir les fonctionnalités disponibles
-subscriptionSchema.methods.getAvailableFeatures = function() {
-  return this.features;
-};
-
-// Méthode pour vérifier si une fonctionnalité est disponible
-subscriptionSchema.methods.hasFeature = function(featureName) {
-  if (!this.isActive()) return false;
-  return this.features[featureName] === true || this.features[featureName] > 0;
-};
-
-// Méthode pour utiliser une fonctionnalité (pour les quotas)
-subscriptionSchema.methods.useFeature = function(featureName) {
-  if (typeof this.features[featureName] === 'number' && this.features[featureName] > 0) {
-    this.features[featureName] -= 1;
-    return this.save();
-  }
-  return Promise.resolve(this);
-};
-
-// Méthode statique pour obtenir les plans disponibles
-subscriptionSchema.statics.getPlans = function() {
-  return {
-    basic: {
-      name: 'Basic',
-      price: 0,
-      currency: 'GNF',
-      features: {
-        maxProperties: 3,
-        featuredListings: 0,
-        prioritySupport: false,
-        analytics: false,
-        virtualTours: false,
-        advancedSearch: false,
-        emailNotifications: true,
-        smsNotifications: false
+    startDate: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      validate: {
+        isDate: true,
+        notNull: true
       }
     },
-    premium: {
-      name: 'Premium',
-      price: 20000,
-      currency: 'GNF',
-      features: {
-        maxProperties: 10,
-        featuredListings: 2,
-        prioritySupport: true,
-        analytics: true,
-        virtualTours: true,
-        advancedSearch: true,
-        emailNotifications: true,
-        smsNotifications: true
+    endDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      validate: {
+        isDate: true
       }
     },
-    agency: {
-      name: 'Agence',
-      price: 100000,
-      currency: 'GNF',
-      features: {
-        maxProperties: 50,
-        featuredListings: 10,
-        prioritySupport: true,
-        analytics: true,
-        virtualTours: true,
-        advancedSearch: true,
-        emailNotifications: true,
-        smsNotifications: true
+    autoRenew: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
+    },
+    paymentMethod: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    paymentStatus: {
+      type: DataTypes.ENUM('pending', 'completed', 'failed', 'refunded'),
+      defaultValue: 'pending',
+      allowNull: false
+    },
+    amount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      validate: {
+        min: 0,
+        notNull: true
       }
     },
-    enterprise: {
-      name: 'Entreprise',
-      price: 300000,
-      currency: 'GNF',
-      features: {
-        maxProperties: -1, // Illimité
-        featuredListings: -1, // Illimité
-        prioritySupport: true,
-        analytics: true,
-        virtualTours: true,
-        advancedSearch: true,
-        emailNotifications: true,
-        smsNotifications: true
+    currency: {
+      type: DataTypes.ENUM('USD', 'EUR', 'GNF'),
+      defaultValue: 'USD',
+      allowNull: false
+    },
+    billingCycle: {
+      type: DataTypes.ENUM('monthly', 'quarterly', 'yearly'),
+      defaultValue: 'monthly',
+      allowNull: false
+    },
+    features: {
+      type: DataTypes.JSONB,
+      defaultValue: {}
+    },
+    limits: {
+      type: DataTypes.JSONB,
+      defaultValue: {}
+    },
+    metadata: {
+      type: DataTypes.JSONB,
+      defaultValue: {}
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
+    },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'id'
       }
     }
+  }, {
+    tableName: 'subscriptions',
+    timestamps: true,
+    indexes: [
+      {
+        fields: ['userId']
+      },
+      {
+        fields: ['status']
+      },
+      {
+        fields: ['plan']
+      },
+      {
+        fields: ['startDate']
+      },
+      {
+        fields: ['endDate']
+      },
+      {
+        fields: ['paymentStatus']
+      }
+    ]
+  });
+
+  // Associations
+  Subscription.associate = function(models) {
+    Subscription.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'user'
+    });
   };
-};
 
-module.exports = mongoose.model('Subscription', subscriptionSchema);
+  // Méthodes d'instance
+  Subscription.prototype.checkIsActive = function() {
+    if (this.status !== 'active') return false;
+    if (!this.endDate) return true;
+    return new Date() <= this.endDate;
+  };
+
+  Subscription.prototype.isExpired = function() {
+    if (!this.endDate) return false;
+    return new Date() > this.endDate;
+  };
+
+  Subscription.prototype.daysUntilExpiry = function() {
+    if (!this.endDate) return null;
+    const now = new Date();
+    const diffTime = this.endDate - now;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  Subscription.prototype.activate = function() {
+    this.status = 'active';
+    this.startDate = new Date();
+    return this.save();
+  };
+
+  Subscription.prototype.cancel = function() {
+    this.status = 'cancelled';
+    this.autoRenew = false;
+    return this.save();
+  };
+
+  Subscription.prototype.renew = function() {
+    if (this.billingCycle === 'monthly') {
+      this.endDate = new Date(this.endDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+    } else if (this.billingCycle === 'quarterly') {
+      this.endDate = new Date(this.endDate.getTime() + 90 * 24 * 60 * 60 * 1000);
+    } else if (this.billingCycle === 'yearly') {
+      this.endDate = new Date(this.endDate.getTime() + 365 * 24 * 60 * 60 * 1000);
+    }
+    return this.save();
+  };
+
+  // Méthodes de classe
+  Subscription.findActiveByUser = function(userId) {
+    return this.findOne({
+      where: {
+        userId,
+        status: 'active',
+        [Sequelize.Op.or]: [
+          { endDate: null },
+          { endDate: { [Sequelize.Op.gt]: new Date() } }
+        ]
+      }
+    });
+  };
+
+  Subscription.findExpiringSoon = function(days = 7) {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + days);
+    
+    return this.findAll({
+      where: {
+        status: 'active',
+        endDate: {
+          [Sequelize.Op.between]: [new Date(), futureDate]
+        }
+      },
+      include: [
+        {
+          model: sequelize.models.User,
+          as: 'user',
+          attributes: ['id', 'firstName', 'lastName', 'email']
+        }
+      ]
+    });
+  };
+
+  Subscription.getPlanFeatures = function(plan) {
+    const features = {
+      basic: {
+        maxProperties: 5,
+        maxImages: 10,
+        maxAppointments: 20,
+        support: 'email',
+        analytics: false,
+        featured: false
+      },
+      premium: {
+        maxProperties: 25,
+        maxImages: 50,
+        maxAppointments: 100,
+        support: 'priority',
+        analytics: true,
+        featured: true
+      },
+      enterprise: {
+        maxProperties: -1, // illimité
+        maxImages: -1, // illimité
+        maxAppointments: -1, // illimité
+        support: 'dedicated',
+        analytics: true,
+        featured: true
+      }
+    };
+    
+    return features[plan] || features.basic;
+  };
+
+  return Subscription;
+};

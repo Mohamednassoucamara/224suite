@@ -1,14 +1,12 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
+const db = require('../models');
 const { protect, loginLimiter } = require('../middleware/auth');
-const { sendEmail } = require('../utils/sendEmail');
-const crypto = require('crypto');
 
 const router = express.Router();
 
 // @route   POST /api/auth/register
-// @desc    Inscription d'un nouvel utilisateur
+// @desc    Inscription d'un nouvel utilisateur (PostgreSQL/Sequelize)
 // @access  Public
 router.post('/register', [
   body('firstName')
@@ -24,184 +22,136 @@ router.post('/register', [
     .normalizeEmail()
     .withMessage('Veuillez entrer un email valide'),
   body('phone')
-    .matches(/^(\+224|224)?[0-9]{9}$/)
-    .withMessage('Veuillez entrer un numéro de téléphone guinéen valide'),
+    .trim()
+    .matches(/^\+?[1-9]\d{1,14}$/)
+    .withMessage('Veuillez entrer un numéro de téléphone valide au format international (E.164)'),
   body('password')
     .isLength({ min: 6 })
     .withMessage('Le mot de passe doit contenir au moins 6 caractères'),
-  body('userType')
-    .isIn(['owner', 'agency', 'seeker'])
-    .withMessage('Type d\'utilisateur invalide')
+  body('role')
+    .optional()
+    .isIn(['user', 'agent', 'admin'])
+    .withMessage('Rôle invalide')
 ], async (req, res) => {
   try {
-    // Vérifier les erreurs de validation
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { firstName, lastName, email, phone, password, userType } = req.body;
+    const { firstName, lastName, email, phone, password, role } = req.body;
 
     // Vérifier si l'utilisateur existe déjà
-    const existingUser = await User.findOne({ email });
+    const existingUser = await db.User.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        error: 'Un utilisateur avec cet email existe déjà'
-      });
+      return res.status(400).json({ success: false, error: 'Un utilisateur avec cet email existe déjà' });
     }
 
-    // Créer l'utilisateur avec vérification automatique pour les tests
-    const user = await User.create({
+    // Créer l'utilisateur (hash via hook)
+    const user = await db.User.create({
       firstName,
       lastName,
       email,
       phone,
       password,
-      userType,
-      isVerified: true // Marquer comme vérifié pour les tests
+      role: role || 'user',
+      isVerified: true
     });
 
-    // Générer le token JWT
-    const token = user.getSignedJwtToken();
+    const token = user.generateAuthToken();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'Compte créé avec succès !',
       token,
       user: {
-        id: user._id,
+        id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        userType: user.userType,
+        role: user.role,
         isVerified: user.isVerified
       }
     });
-
   } catch (error) {
     console.error('Erreur inscription:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erreur lors de l\'inscription'
-    });
+    return res.status(500).json({ success: false, error: "Erreur lors de l'inscription" });
   }
 });
 
 // @route   POST /api/auth/login
-// @desc    Connexion utilisateur
+// @desc    Connexion utilisateur (PostgreSQL/Sequelize)
 // @access  Public
 router.post('/login', loginLimiter, [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Veuillez entrer un email valide'),
-  body('password')
-    .notEmpty()
-    .withMessage('Le mot de passe est requis')
+  body('email').isEmail().normalizeEmail().withMessage('Veuillez entrer un email valide'),
+  body('password').notEmpty().withMessage('Le mot de passe est requis')
 ], async (req, res) => {
   try {
-    // Vérifier les erreurs de validation
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
     const { email, password } = req.body;
-
-    // Vérifier si l'utilisateur existe
-    const user = await User.findOne({ email }).select('+password');
+    const user = await db.User.findOne({ where: { email } });
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Email ou mot de passe incorrect'
-      });
+      return res.status(401).json({ success: false, error: 'Email ou mot de passe incorrect' });
     }
 
-    // Vérifier le mot de passe
-    const isMatch = await user.matchPassword(password);
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        error: 'Email ou mot de passe incorrect'
-      });
+      return res.status(401).json({ success: false, error: 'Email ou mot de passe incorrect' });
     }
 
-    // Vérifier si le compte est vérifié
     if (!user.isVerified) {
-      return res.status(403).json({
-        success: false,
-        error: 'Veuillez vérifier votre email avant de vous connecter'
-      });
+      return res.status(403).json({ success: false, error: 'Veuillez vérifier votre email avant de vous connecter' });
     }
 
-    // Générer le token JWT
-    const token = user.getSignedJwtToken();
-
-    res.json({
+    const token = user.generateAuthToken();
+    return res.json({
       success: true,
       message: 'Connexion réussie',
       token,
       user: {
-        id: user._id,
+        id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        userType: user.userType,
-        isVerified: user.isVerified,
-        isPremium: user.isPremiumActive
+        role: user.role,
+        isVerified: user.isVerified
       }
     });
-
   } catch (error) {
     console.error('Erreur connexion:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erreur lors de la connexion'
-    });
+    return res.status(500).json({ success: false, error: 'Erreur lors de la connexion' });
   }
 });
 
 // @route   GET /api/auth/me
-// @desc    Obtenir les informations de l'utilisateur connecté
+// @desc    Obtenir le profil utilisateur connecté
 // @access  Private
 router.get('/me', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id)
-      .populate('favorites', 'title price location images');
-
-    res.json({
+    // req.user est injecté par le middleware protect
+    return res.json({
       success: true,
       user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone,
-        userType: user.userType,
-        isVerified: user.isVerified,
-        isPremium: user.isPremiumActive,
-        avatar: user.avatar,
-        address: user.address,
-        agency: user.agency,
-        favorites: user.favorites,
-        notifications: user.notifications
+        id: req.user.id,
+        firstName: req.user.firstName,
+        lastName: req.user.lastName,
+        email: req.user.email,
+        phone: req.user.phone,
+        role: req.user.role,
+        isVerified: req.user.isVerified
       }
     });
   } catch (error) {
     console.error('Erreur récupération profil:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erreur lors de la récupération du profil'
-    });
+    return res.status(500).json({ success: false, error: 'Erreur lors de la récupération du profil' });
   }
 });
+
+module.exports = router;
 
 // @route   POST /api/auth/verify-email
 // @desc    Vérifier l'email avec le token

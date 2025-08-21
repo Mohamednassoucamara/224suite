@@ -5,6 +5,17 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
+// Vider les caches utilisateurs si la version change
+const CACHE_VERSION = process.env.REACT_APP_CACHE_VERSION || '1';
+const storedCacheVersion = localStorage.getItem('cache_version');
+if (storedCacheVersion !== CACHE_VERSION) {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch {}
+  localStorage.setItem('cache_version', CACHE_VERSION);
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
