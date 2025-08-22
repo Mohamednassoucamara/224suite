@@ -2,151 +2,116 @@ import React, { useState } from 'react';
 import apiService from '../services/api';
 
 const RegisterTest: React.FC = () => {
-  const [formData, setFormData] = useState({
-    firstName: 'Test',
-    lastName: 'User',
-    email: `test${Date.now()}@example.com`,
-    phone: '+224123456789',
-    password: 'password123',
-    userType: 'seeker'
-  });
+  const [result, setResult] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const testRegister = async () => {
     setLoading(true);
-    setError('');
-    setResult(null);
+    setResult('');
     
     try {
-      const response = await apiService.register(formData);
-      setResult(response);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
-      setError(errorMessage);
+      const userData = {
+        firstName: 'Test',
+        lastName: 'User',
+        email: `test${Date.now()}@example.com`,
+        phone: '+224611925997',
+        password: 'P@ssw0rd1',
+        role: 'user'
+      };
+
+      console.log('Envoi des données:', userData);
+      const response = await apiService.register(userData);
+      console.log('Réponse reçue:', response);
+      
+      setResult(`✅ Succès: ${response.message}`);
+    } catch (error) {
+      console.error('Erreur détaillée:', error);
+      setResult(`❌ Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const testDirectFetch = async () => {
+    setLoading(true);
+    setResult('');
+    
+    try {
+      const userData = {
+        firstName: 'Test',
+        lastName: 'User',
+        email: `test${Date.now()}@example.com`,
+        phone: '+224611925997',
+        password: 'P@ssw0rd1',
+        role: 'user'
+      };
+
+      console.log('Test direct fetch avec:', userData);
+      
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData)
+      });
+
+      console.log('Status:', response.status);
+      console.log('Headers:', response.headers);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erreur HTTP:', errorText);
+        setResult(`❌ Erreur HTTP ${response.status}: ${errorText}`);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Données reçues:', data);
+      setResult(`✅ Succès direct: ${data.message}`);
+    } catch (error) {
+      console.error('Erreur fetch direct:', error);
+      setResult(`❌ Erreur fetch: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-sm border">
-      <h3 className="text-lg font-semibold mb-4">Test d'Inscription API</h3>
+    <div className="card p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Test d'Inscription API
+      </h3>
       
-      <form onSubmit={handleSubmit} className="space-y-4 mb-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Prénom
-          </label>
-          <input
-            type="text"
-            value={formData.firstName}
-            onChange={(e) => handleInputChange('firstName', e.target.value)}
-            className="input-field"
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nom
-          </label>
-          <input
-            type="text"
-            value={formData.lastName}
-            onChange={(e) => handleInputChange('lastName', e.target.value)}
-            className="input-field"
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            className="input-field"
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Téléphone
-          </label>
-          <input
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-            className="input-field"
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Mot de passe
-          </label>
-          <input
-            type="password"
-            value={formData.password}
-            onChange={(e) => handleInputChange('password', e.target.value)}
-            className="input-field"
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Type d'utilisateur
-          </label>
-          <select
-            value={formData.userType}
-            onChange={(e) => handleInputChange('userType', e.target.value)}
-            className="input-field"
-            required
-          >
-            <option value="seeker">Chercheur</option>
-            <option value="owner">Propriétaire</option>
-            <option value="agency">Agence</option>
-          </select>
-        </div>
-        
+      <div className="space-y-4">
         <button
-          type="submit"
+          onClick={testRegister}
           disabled={loading}
           className="btn-primary w-full"
         >
-          {loading ? 'Inscription en cours...' : 'Tester l\'inscription'}
+          {loading ? 'Test en cours...' : 'Test via apiService'}
         </button>
-      </form>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <p className="text-red-600 text-sm">Erreur: {error}</p>
-        </div>
-      )}
+        <button
+          onClick={testDirectFetch}
+          disabled={loading}
+          className="btn-secondary w-full"
+        >
+          {loading ? 'Test en cours...' : 'Test direct fetch'}
+        </button>
 
-      {result && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <h4 className="font-medium text-green-800 mb-2">✅ Inscription Réussie</h4>
-          <pre className="text-sm text-green-700">
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        </div>
-      )}
+        {result && (
+          <div className={`p-3 rounded-lg ${
+            result.startsWith('✅') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+          }`}>
+            {result}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 text-sm text-gray-600">
+        <p>Vérifiez la console du navigateur pour plus de détails.</p>
+      </div>
     </div>
   );
 };

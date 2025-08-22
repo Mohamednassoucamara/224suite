@@ -7,15 +7,15 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 // Import des modèles Sequelize
-const db = require('./models');
+const db = require('./backend/models');
 
 // Import des routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const propertyRoutes = require('./routes/properties');
-const searchRoutes = require('./routes/search');
-const contactRoutes = require('./routes/contact');
-const paymentRoutes = require('./routes/payments');
+const authRoutes = require('./backend/routes/auth');
+const userRoutes = require('./backend/routes/users');
+const propertyRoutes = require('./backend/routes/properties');
+const searchRoutes = require('./backend/routes/search');
+const contactRoutes = require('./backend/routes/contact');
+const paymentRoutes = require('./backend/routes/payments');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -150,4 +150,4 @@ process.on('SIGINT', async () => {
 });
 
 // Démarrer le serveur
-startServer(); 
+startServer();
