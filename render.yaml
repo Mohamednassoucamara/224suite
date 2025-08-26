@@ -1,6 +1,7 @@
 services:
   - type: web
     name: 224suite-backend
+    rootDir: backend
     env: node
     plan: free
     buildCommand: npm install
@@ -29,3 +30,5 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+
+
