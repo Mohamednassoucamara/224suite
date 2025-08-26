@@ -6,7 +6,7 @@ const { protect, loginLimiter } = require('../middleware/auth');
 const router = express.Router();
 
 // @route   POST /api/auth/register
-// @desc    Inscription d'un nouvel utilisateur (PostgreSQL/Sequelize)
+// @desc    Inscription d'un nouvel utilisateur (PostgreSQL)
 // @access  Public
 router.post('/register', [
   body('firstName')
@@ -41,19 +41,18 @@ router.post('/register', [
 
     const { firstName, lastName, email, phone, password, role } = req.body;
 
-    // Vérifier si l'utilisateur existe déjà
+    // Inscription directe dans PostgreSQL
     const existingUser = await db.User.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ success: false, error: 'Un utilisateur avec cet email existe déjà' });
+      return res.status(409).json({ success: false, error: 'Un utilisateur avec cet email existe déjà' });
     }
 
-    // Créer l'utilisateur (hash via hook)
     const user = await db.User.create({
       firstName,
       lastName,
       email,
       phone,
-      password,
+      password, // Hashé par hook dans le modèle
       role: role || 'user',
       isVerified: true
     });
@@ -62,7 +61,7 @@ router.post('/register', [
 
     return res.status(201).json({
       success: true,
-      message: 'Compte créé avec succès !',
+      message: 'Compte créé avec succès',
       token,
       user: {
         id: user.id,
@@ -73,8 +72,9 @@ router.post('/register', [
         isVerified: user.isVerified
       }
     });
+
   } catch (error) {
-    console.error('Erreur inscription:', error);
+    console.error('❌ Erreur inscription:', error);
     return res.status(500).json({ success: false, error: "Erreur lors de l'inscription" });
   }
 });

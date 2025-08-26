@@ -166,3 +166,4 @@ Temporary Items
 /.env.local
 /backend/.env
 /backend/.env.*
+.vercel
