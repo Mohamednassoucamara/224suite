@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Home, Building, Users, Star, ArrowRight, Phone, Mail, MessageCircle } from 'lucide-react';
 import { useNavigation } from '../App';
+import BackendStatus from '../components/BackendStatus';
 
 const HomePage: React.FC = () => {
   const { setCurrentPage } = useNavigation();
@@ -30,6 +31,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen">
+      <BackendStatus />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-600 to-primary-800 text-white">
         <div className="absolute inset-0 bg-black/20"></div>
