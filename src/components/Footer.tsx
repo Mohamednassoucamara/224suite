@@ -75,14 +75,7 @@ const Footer: React.FC = () => {
               Mon dashboard
             </button>
           </li>
-          <li>
-            <button 
-              onClick={() => setCurrentPage('about')}
-              className="text-gray-300 hover:text-white transition-colors bg-transparent border-none text-left"
-            >
-              À propos
-            </button>
-              </li>
+
             </ul>
           </div>
 

@@ -5,7 +5,6 @@ import PropertyDetailPage from './pages/PropertyDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
@@ -129,8 +128,7 @@ function App() {
         return <RegisterPage />;
       case 'dashboard':
         return <DashboardPage />;
-      case 'about':
-        return <AboutPage />;
+
       case 'contact':
         return <ContactPage />;
       case 'terms':

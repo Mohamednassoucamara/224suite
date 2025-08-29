@@ -68,16 +68,7 @@ const Header: React.FC = () => {
              >
                Vendre/Louer
              </button>
-             <button 
-               onClick={() => setCurrentPage('about')}
-               className={`font-medium bg-transparent border-none transition-colors ${
-                 currentPage === 'about' 
-                   ? 'text-primary-600 border-b-2 border-primary-600' 
-                   : 'text-gray-700 hover:text-primary-600'
-               }`}
-             >
-               À propos
-             </button>
+
              <button 
                onClick={() => setCurrentPage('contact')}
                className={`font-medium bg-transparent border-none transition-colors ${
@@ -195,15 +186,7 @@ const Header: React.FC = () => {
                >
                  Vendre/Louer
                </button>
-               <button 
-                 onClick={() => {
-                   setCurrentPage('about');
-                   setIsMobileMenuOpen(false);
-                 }}
-                 className="block w-full text-left px-3 py-2 text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md bg-transparent border-none"
-               >
-                 À propos
-               </button>
+
                <button 
                  onClick={() => {
                    setCurrentPage('contact');

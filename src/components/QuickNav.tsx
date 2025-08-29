@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Search, Plus, User, Info, Mail } from 'lucide-react';
+import { Home, Search, Plus, User, Mail } from 'lucide-react';
 import { useNavigation } from '../App';
 
 const QuickNav: React.FC = () => {
@@ -30,12 +30,7 @@ const QuickNav: React.FC = () => {
       page: 'dashboard',
       color: 'bg-purple-500'
     },
-    {
-      icon: Info,
-      label: 'À propos',
-      page: 'about',
-      color: 'bg-teal-500'
-    },
+
     {
       icon: Mail,
       label: 'Contact',
