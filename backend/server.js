@@ -42,6 +42,8 @@ app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = [
       process.env.FRONTEND_URL,
+      'https://www.224suite.com',
+      'https://224suite.com',
       'https://224suite-gg9gjm7tn-mohamednassoucamaras-projects.vercel.app',
       'https://224suite.vercel.app',
       'http://localhost:3000',
