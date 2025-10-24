@@ -51,6 +51,8 @@ class ApiService {
       }
 
       // Retourner l'utilisateur sans le mot de passe
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...userWithoutPassword } = user;
       return userWithoutPassword;
     } catch (error) {
@@ -101,7 +103,8 @@ class ApiService {
         throw new Error('Utilisateur non trouvé');
       }
       
-      const { password, ...userWithoutPassword } = user;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...userWithoutPassword } = user;
       return userWithoutPassword;
     } catch (error) {
       throw new Error(`Erreur de récupération du profil: ${error.message}`);
@@ -384,11 +387,7 @@ class ApiService {
 
   // === UTILITAIRES ===
   async healthCheck() {
-    try {
-      return { status: 'OK', message: 'Service API fonctionnel' };
-    } catch (error) {
-      throw new Error(`Erreur de vérification: ${error.message}`);
-    }
+    return { status: 'OK', message: 'Service API fonctionnel' };
   }
 }
 

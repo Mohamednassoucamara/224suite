@@ -12,7 +12,7 @@ import { useNavigation } from '../App';
 import Breadcrumb from '../components/Breadcrumb';
 
 const ContactPage: React.FC = () => {
-  const { setCurrentPage } = useNavigation();
+  // const { } = useNavigation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',

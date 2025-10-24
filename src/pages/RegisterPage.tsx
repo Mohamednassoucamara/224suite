@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 
 const RegisterPage: React.FC = () => {
   const { setCurrentPage } = useNavigation();
-  const { register, error: authError, loading: authLoading } = useAuth();
+  const { register, error: authError } = useAuth();
   const [step, setStep] = useState(1);
   const [userType, setUserType] = useState<'owner' | 'agency' | 'seeker' | ''>('');
   const [formData, setFormData] = useState({

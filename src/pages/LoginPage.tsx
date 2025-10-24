@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 
 const LoginPage: React.FC = () => {
   const { setCurrentPage } = useNavigation();
-  const { login, error: authError, loading: authLoading } = useAuth();
+  const { login, error: authError } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''

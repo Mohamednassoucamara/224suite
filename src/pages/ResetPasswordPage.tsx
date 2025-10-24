@@ -3,7 +3,7 @@ import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, Home } from 'lucide-react'
 import { useNavigation } from '../App';
 
 const ResetPasswordPage: React.FC = () => {
-  const { setCurrentPage, params } = useNavigation();
+  const { setCurrentPage } = useNavigation();
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: ''
@@ -15,7 +15,7 @@ const ResetPasswordPage: React.FC = () => {
   const [error, setError] = useState('');
 
   // Récupérer le token depuis les paramètres d'URL
-  const token = params.token || '';
+  // const token = params.token || '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

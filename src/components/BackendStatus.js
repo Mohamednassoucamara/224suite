@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Loader2, Database, Server, Globe } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Database, Server } from 'lucide-react';
 import apiService from '../services/api';
 
 const BackendStatus = () => {
@@ -21,9 +21,9 @@ const BackendStatus = () => {
       const healthResponse = await apiService.healthCheck();
       setApiStatus(healthResponse);
       
-      // Test de la connexion à la base de données
-      const dbResponse = await apiService.testDatabaseConnection();
-      setDbStatus(dbResponse);
+      // Test de la base de données via les statistiques
+      await apiService.getStats();
+      setDbStatus({ status: 'OK', message: 'Base de données connectée' });
     } catch (error) {
       console.error('Erreur lors du test de connexion:', error);
       setApiStatus({ status: 'ERROR', message: error.message });
