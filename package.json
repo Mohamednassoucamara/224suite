@@ -6,7 +6,7 @@
   "scripts": {
     "start": "serve -s build",
     "dev": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "node scripts/build.js",
     "test": "jest",
     "db:setup": "node database/setup.js",
     "db:seed": "node database/seed.js",
