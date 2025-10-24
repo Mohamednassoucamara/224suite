@@ -30,6 +30,7 @@
     "types": ["react", "react-dom"]
   },
   "include": [
-    "src"
+    "src",
+    "src/types/**/*"
   ]
 }
