@@ -13,7 +13,7 @@ const TermsPage: React.FC = () => {
         
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Conditions d'utilisation</h1>
-          <p className="text-xl text-gray-600">Dernière mise à jour : 1er janvier 2024</p>
+          <p className="text-xl text-gray-600">Dernière mise à jour : 29 octobre 2025</p>
         </div>
 
         <div className="card p-8 mb-12">

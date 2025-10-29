@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, Home } from 'lucide-react';
 import { useNavigation } from '../App';
-import { useAuth } from '../hooks/useAuth';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useNotification } from '../components/NotificationProvider';
 
 const LoginPage: React.FC = () => {
   const { setCurrentPage } = useNavigation();
-  const { login, error: authError } = useAuth();
+  const { showNotification } = useNotification();
+  const { signIn } = useSupabaseAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -20,11 +22,13 @@ const LoginPage: React.FC = () => {
     setError('');
     
     try {
-      await login(formData);
+      await signIn(formData.email, formData.password);
       setCurrentPage('dashboard');
+      showNotification('success', 'Connexion réussie. Bienvenue !');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur de connexion';
       setError(errorMessage);
+      showNotification('error', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -105,10 +109,10 @@ const LoginPage: React.FC = () => {
             </div>
 
             {/* Affichage des erreurs */}
-            {(error || authError) && (
+            {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-red-600 text-sm">
-                  {error || authError}
+                  {error}
                 </p>
               </div>
             )}

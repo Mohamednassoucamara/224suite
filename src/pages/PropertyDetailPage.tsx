@@ -16,10 +16,15 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useNavigation } from '../App';
+import { useNotification } from '../components/NotificationProvider';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import apiService from '../services/api';
 import Breadcrumb from '../components/Breadcrumb';
 
 const PropertyDetailPage: React.FC = () => {
   const { params, goBack } = useNavigation();
+  const { showNotification } = useNotification();
+  const { user } = useSupabaseAuth() as any;
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [property, setProperty] = useState<any>(null);
@@ -185,7 +190,26 @@ const PropertyDetailPage: React.FC = () => {
                 {/* Actions */}
                 <div className="absolute top-4 right-4 flex space-x-2">
                   <button
-                    onClick={() => setIsFavorite(!isFavorite)}
+                    onClick={async () => {
+                      try {
+                        if (!user) {
+                          showNotification('warning', 'Connectez-vous pour ajouter aux favoris.');
+                          return;
+                        }
+                        if (isFavorite) {
+                          await apiService.removeFavorite(user.id, property.id);
+                          setIsFavorite(false);
+                          showNotification('info', 'Retiré des favoris');
+                        } else {
+                          await apiService.addFavorite(user.id, property.id);
+                          setIsFavorite(true);
+                          showNotification('success', 'Ajouté aux favoris');
+                        }
+                      } catch (e) {
+                        const m = e instanceof Error ? e.message : 'Erreur favoris';
+                        showNotification('error', m);
+                      }
+                    }}
                     className={`p-2 rounded-full ${
                       isFavorite ? 'bg-red-500 text-white' : 'bg-white/80 text-gray-600'
                     } hover:scale-110 transition-transform`}
@@ -325,11 +349,21 @@ const PropertyDetailPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                <button className="w-full btn-primary flex items-center justify-center">
+                <button
+                  className="w-full btn-primary flex items-center justify-center"
+                  onClick={() => {
+                    showNotification('info', `Appelez le propriétaire au ${property.owner.phone}`);
+                  }}
+                >
                   <Phone className="w-4 h-4 mr-2" />
                   Appeler
                 </button>
-                <button className="w-full btn-secondary flex items-center justify-center">
+                <button
+                  className="w-full btn-secondary flex items-center justify-center"
+                  onClick={() => {
+                    showNotification('success', 'Message envoyé (simulation).');
+                  }}
+                >
                   <Mail className="w-4 h-4 mr-2" />
                   Envoyer un message
                 </button>

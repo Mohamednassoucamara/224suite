@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, Phone, Building2, Home, Search, Home as HomeIcon } from 'lucide-react';
 import { useNavigation } from '../App';
-import { useAuth } from '../hooks/useAuth';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useNotification } from '../components/NotificationProvider';
 
 const RegisterPage: React.FC = () => {
   const { setCurrentPage } = useNavigation();
-  const { register, error: authError } = useAuth();
+  const { showNotification } = useNotification();
+  const { signUp, supabase } = useSupabaseAuth();
   const [step, setStep] = useState(1);
   const [userType, setUserType] = useState<'owner' | 'agency' | 'seeker' | ''>('');
   const [formData, setFormData] = useState({
@@ -22,6 +24,8 @@ const RegisterPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailTaken, setEmailTaken] = useState(false);
 
   const handleUserTypeSelect = (type: 'owner' | 'agency' | 'seeker') => {
     setUserType(type);
@@ -32,7 +36,19 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    if (emailTaken) {
+      setError('Cet email est déjà utilisé');
+      setIsLoading(false);
+      return;
+    }
     
+    // Vérification du type d'utilisateur
+    if (!userType) {
+      setError('Veuillez choisir un type de compte');
+      setIsLoading(false);
+      return;
+    }
+
     // Validation des mots de passe
     if (formData.password !== formData.confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
@@ -49,27 +65,59 @@ const RegisterPage: React.FC = () => {
     
     try {
       const userData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        role: userType,
-        ...(userType === 'agency' && {
-          agencyName: formData.agencyName,
-          agencyLicense: formData.agencyLicense
-        })
+        role: userType === 'owner' ? 'user' : userType === 'agency' ? 'agent' : 'user'
       };
       
-      await register(userData);
+      await signUp(userData);
       setCurrentPage('dashboard');
+      showNotification('success', 'Compte créé avec succès. Bienvenue !');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur d\'inscription';
       setError(errorMessage);
+      showNotification('error', errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleEmailBlur = async () => {
+    if (!formData.email) return;
+    try {
+      setEmailChecking(true);
+      const { data, error } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', formData.email)
+        .limit(1);
+      if (error) {
+        return; // on ne bloque pas l'inscription sur une erreur de vérification
+      }
+      setEmailTaken((data || []).length > 0);
+    } finally {
+      setEmailChecking(false);
+    }
+  };
+
+  const passwordStrength = useMemo(() => {
+    const pwd = formData.password || '';
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    const labels = ['Très faible', 'Faible', 'Correct', 'Bon', 'Excellent'];
+    const colors = ['bg-red-500','bg-orange-500','bg-yellow-500','bg-green-500','bg-emerald-600'];
+    return {
+      score,
+      label: labels[score] || labels[0],
+      color: colors[score] || colors[0]
+    };
+  }, [formData.password]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -197,10 +245,10 @@ const RegisterPage: React.FC = () => {
               </div>
 
               {/* Affichage des erreurs */}
-              {(error || authError) && (
+              {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                   <p className="text-red-600 text-sm">
-                    {error || authError}
+                    {error}
                   </p>
                 </div>
               )}
@@ -214,13 +262,23 @@ const RegisterPage: React.FC = () => {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onChange={(e) => {
+                      handleInputChange('email', e.target.value);
+                      setEmailTaken(false);
+                    }}
+                    onBlur={handleEmailBlur}
                     className="input-field pl-10"
                     placeholder="votre@email.com"
                     required
                   />
                 </div>
               </div>
+
+              {formData.email && (emailChecking || emailTaken) && (
+                <p className={`text-sm ${emailTaken ? 'text-red-600' : 'text-gray-500'}`}>
+                  {emailChecking ? 'Vérification de la disponibilité de l\'email…' : 'Un compte existe déjà avec cet email.'}
+                </p>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -301,6 +359,15 @@ const RegisterPage: React.FC = () => {
                     )}
                   </button>
                 </div>
+                {/* Indicateur robustesse */}
+                {formData.password && (
+                  <div className="mt-2">
+                    <div className="h-2 bg-gray-200 rounded">
+                      <div className={`h-2 ${passwordStrength.color} rounded`} style={{ width: `${(passwordStrength.score/4)*100}%` }} />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Robustesse: {passwordStrength.label}</p>
+                  </div>
+                )}
               </div>
 
               <div>

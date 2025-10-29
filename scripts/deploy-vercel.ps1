@@ -1,5 +1,8 @@
-# Script de déploiement Vercel pour 224Suite (PowerShell)
-# Usage: .\scripts\deploy-vercel.ps1
+param(
+  [string]$SupabaseUrl,
+  [string]$SupabaseAnonKey,
+  [switch]$PreviewOnly
+)
 
 Write-Host "🚀 Déploiement 224Suite sur Vercel..." -ForegroundColor Green
 
@@ -12,33 +15,46 @@ try {
     npm install -g vercel
 }
 
-# Se connecter à Vercel
-Write-Host "🔐 Connexion à Vercel..." -ForegroundColor Yellow
-vercel login
+# Lier le projet au dossier courant si nécessaire (non interactif si déjà lié)
+Write-Host "🔗 Liaison du projet Vercel (si nécessaire)..." -ForegroundColor Yellow
+vercel link --yes | Out-Null
 
-# Configurer les variables d'environnement
-Write-Host "⚙️ Configuration des variables d'environnement..." -ForegroundColor Yellow
+# Récupérer les valeurs si non fournies en paramètre (invite sécurisée)
+if (-not $SupabaseUrl) {
+  $SupabaseUrl = Read-Host "Entrez REACT_APP_SUPABASE_URL (ex: https://xxxx.supabase.co)"
+}
+if (-not $SupabaseAnonKey) {
+  $SupabaseAnonKey = Read-Host "Entrez REACT_APP_SUPABASE_ANON_KEY (clé anon publique)"
+}
 
-# Variables de base de données Railway
-vercel env add NODE_ENV production
-vercel env add DB_HOST gondola.proxy.rlwy.net
-vercel env add DB_PORT 11311
-vercel env add DB_USER root
-vercel env add DB_PASSWORD BPlZtcXgcrhlcSVGInePcSDffgMHZzmw
-vercel env add DB_NAME 224suite
+# Configurer les variables d'environnement Supabase pour Preview et Production
+Write-Host "⚙️ Configuration des variables d'environnement Supabase..." -ForegroundColor Yellow
 
-# Variables de l'application
-vercel env add REACT_APP_API_URL https://224suite.vercel.app
+# Preview
+cmd /c "echo $SupabaseUrl | vercel env add REACT_APP_SUPABASE_URL preview" | Out-Null
+cmd /c "echo $SupabaseAnonKey | vercel env add REACT_APP_SUPABASE_ANON_KEY preview" | Out-Null
 
-Write-Host "✅ Variables d'environnement configurées" -ForegroundColor Green
+# Production
+cmd /c "echo $SupabaseUrl | vercel env add REACT_APP_SUPABASE_URL production" | Out-Null
+cmd /c "echo $SupabaseAnonKey | vercel env add REACT_APP_SUPABASE_ANON_KEY production" | Out-Null
+
+# Optionnel: forcer NODE_ENV
+cmd /c "echo production | vercel env add NODE_ENV production" | Out-Null
+
+Write-Host "✅ Variables d'environnement Supabase configurées" -ForegroundColor Green
 
 # Construire l'application
 Write-Host "🔨 Construction de l'application..." -ForegroundColor Yellow
 npm run build
 
 # Déployer
-Write-Host "🚀 Déploiement en cours..." -ForegroundColor Yellow
-vercel --prod
+if ($PreviewOnly) {
+  Write-Host "🚀 Déploiement en prévisualisation..." -ForegroundColor Yellow
+  vercel --prebuilt | Out-Null
+} else {
+  Write-Host "🚀 Déploiement en production..." -ForegroundColor Yellow
+  vercel --prebuilt --prod | Out-Null
+}
 
 Write-Host "✅ Déploiement terminé !" -ForegroundColor Green
-Write-Host "🌐 Votre application est disponible sur Vercel" -ForegroundColor Cyan
+Write-Host "🌐 Vérifiez votre projet dans le dashboard Vercel" -ForegroundColor Cyan

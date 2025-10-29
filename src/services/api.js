@@ -1,5 +1,5 @@
-// Service API pour le frontend - version simplifiée
-import apiService from './api-simple.js';
+// Service API pour le frontend - version Supabase
+import apiService from './api-supabase.js';
 
-// Réexporter le service API simplifié
+// Réexporter le service API Supabase
 export default apiService;

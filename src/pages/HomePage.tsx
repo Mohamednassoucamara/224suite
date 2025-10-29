@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
-import { Search, MapPin, Home, Building, Users, Star, ArrowRight, Phone, Mail, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, MapPin, Home, Building, Users, Star, ArrowRight, Phone, Mail, MessageCircle, Filter } from 'lucide-react';
 import { useNavigation } from '../App';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 import BackendStatus from '../components/BackendStatus';
+import PropertyCard from '../components/PropertyCard';
+import AdvancedSearch from '../components/AdvancedSearch';
+import LoadingSpinner from '../components/LoadingSpinner';
+import apiService from '../services/api';
 
 const HomePage: React.FC = () => {
   const { setCurrentPage } = useNavigation();
+  const { user } = useSupabaseAuth();
   const [searchInputs, setSearchInputs] = useState({
     location: '',
     propertyType: '',
     minPrice: '',
     maxPrice: ''
   });
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +36,35 @@ const HomePage: React.FC = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  // Charger les propriétés au montage du composant
+  useEffect(() => {
+    loadProperties();
+  }, []);
+
+  const loadProperties = async () => {
+    try {
+      setLoading(true);
+      const data = await apiService.getProperties({ limit: 6, is_featured: true });
+      setProperties(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des propriétés:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdvancedSearch = (filters: any) => {
+    setCurrentPage('search', filters);
+  };
+
+  const handlePropertyView = (propertyId: string) => {
+    setCurrentPage('property', { id: propertyId });
+  };
+
+  const handlePropertyContact = (propertyId: string) => {
+    setCurrentPage('contact', { propertyId });
   };
 
   return (
@@ -82,6 +120,17 @@ const HomePage: React.FC = () => {
                   Rechercher
                 </button>
               </form>
+              
+              {/* Bouton de recherche avancée */}
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => setShowAdvancedSearch(true)}
+                  className="text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center mx-auto"
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Recherche avancée
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -350,8 +399,53 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Section des propriétés vedettes */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Propriétés vedettes
+            </h2>
+            <p className="text-xl text-gray-600">
+              Découvrez nos meilleures offres immobilières à Conakry
+            </p>
+          </div>
 
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <LoadingSpinner size="lg" text="Chargement des propriétés..." />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {properties.map((property) => (
+                <PropertyCard
+                  key={property.id}
+                  property={property}
+                  onView={handlePropertyView}
+                  onContact={handlePropertyContact}
+                />
+              ))}
+            </div>
+          )}
 
+          <div className="text-center mt-12">
+            <button
+              onClick={() => setCurrentPage('search')}
+              className="btn-primary inline-flex items-center"
+            >
+              Voir toutes les propriétés
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Composant de recherche avancée */}
+      <AdvancedSearch
+        isOpen={showAdvancedSearch}
+        onSearch={handleAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
+      />
     </div>
   );
 };

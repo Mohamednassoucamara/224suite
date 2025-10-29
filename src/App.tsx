@@ -14,7 +14,8 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import QuickNav from './components/QuickNav';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AuthProvider } from './hooks/useAuth';
+import { NotificationProvider } from './components/NotificationProvider';
+import { AuthProvider } from './hooks/useSupabaseAuth';
 
 // Types pour la navigation
 interface NavigationState {
@@ -155,18 +156,20 @@ function App() {
 
   return (
     <AuthProvider>
-      <NavigationContext.Provider value={navigationValue}>
-        <ErrorBoundary>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-grow">
-              {renderPage()}
-            </main>
-            <Footer />
-            <QuickNav />
-          </div>
-        </ErrorBoundary>
-      </NavigationContext.Provider>
+      <NotificationProvider>
+        <NavigationContext.Provider value={navigationValue}>
+          <ErrorBoundary>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-grow">
+                {renderPage()}
+              </main>
+              <Footer />
+              <QuickNav />
+            </div>
+          </ErrorBoundary>
+        </NavigationContext.Provider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
