@@ -72,7 +72,12 @@ class SupabaseApiService {
         throw new Error(authError.message);
       }
 
-      // Créer l'utilisateur dans la table users (ne pas stocker le mot de passe en clair)
+      // Si la confirmation d'email est requise, pas d'id utilisateur immédiat
+      if (!authData?.user?.id) {
+        return { message: 'Vérifiez votre email pour confirmer votre compte', needsEmailConfirmation: true };
+      }
+
+      // Créer le profil uniquement si l'utilisateur est authentifié et que l'id est disponible
       const { error: userError } = await this.supabase
         .from('users')
         .insert({
@@ -90,7 +95,7 @@ class SupabaseApiService {
         throw new Error('Erreur lors de la création du profil utilisateur');
       }
 
-      return { message: 'Utilisateur créé avec succès' };
+      return { message: 'Utilisateur créé avec succès', needsEmailConfirmation: false };
     } catch (error) {
       throw new Error(`Erreur d'inscription: ${error.message}`);
     }

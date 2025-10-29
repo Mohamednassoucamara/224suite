@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Home, Menu, X, User, LogOut, Settings, Bell } from 'lucide-react';
 import { useNavigation } from '../App';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 
 const Header: React.FC = () => {
   const { setCurrentPage, currentPage } = useNavigation();
+  const { user, signOut } = useSupabaseAuth() as any;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Simulation d'état de connexion
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -16,9 +17,10 @@ const Header: React.FC = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    await signOut();
     setIsUserMenuOpen(false);
+    setCurrentPage('home');
   };
 
   return (
@@ -83,7 +85,7 @@ const Header: React.FC = () => {
 
           {/* Actions Desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn ? (
+            {user ? (
               <>
                 <button className="relative p-2 text-gray-600 hover:text-primary-600">
                   <Bell className="w-5 h-5" />
@@ -95,14 +97,21 @@ const Header: React.FC = () => {
                     className="flex items-center space-x-2 text-gray-700 hover:text-primary-600"
                   >
                     <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary-600" />
+                      <span className="text-primary-600 text-sm font-semibold">
+                        {(user?.first_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
+                      </span>
                     </div>
-                    <span className="font-medium">Mon compte</span>
+                    <span className="font-medium">{user?.first_name || 'Mon compte'}</span>
                   </button>
                   
                   {isUserMenuOpen && (
                                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                       <button className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100 bg-transparent border-none text-left">
+                      <button 
+                        onClick={() => {
+                          setCurrentPage('dashboard');
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100 bg-transparent border-none text-left">
                          <User className="w-4 h-4 mr-3" />
                          Profil
                        </button>
@@ -122,7 +131,7 @@ const Header: React.FC = () => {
                   )}
                 </div>
               </>
-                         ) : (
+            ) : (
                <>
                  <button 
                    onClick={() => setCurrentPage('login')}
@@ -197,7 +206,7 @@ const Header: React.FC = () => {
                  Contact
                </button>
               
-                              {isLoggedIn ? (
+              {user ? (
                   <>
                     <hr className="my-2" />
                     <button className="block w-full text-left px-3 py-2 text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md bg-transparent border-none">

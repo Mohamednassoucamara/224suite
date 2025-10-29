@@ -148,7 +148,13 @@ export const AuthProvider = ({ children }) => {
         throw new Error(translateAuthError(authError.message));
       }
 
-      // Créer l'utilisateur dans la table users
+      // Si la confirmation d'email est requise, aucune session ni user.id immédiat
+      // Dans ce cas, on ne tente PAS de créer le profil; on attend la connexion après confirmation
+      if (!authData?.user?.id) {
+        return { needsEmailConfirmation: true };
+      }
+
+      // Créer le profil uniquement si l'utilisateur est authentifié et que l'id est disponible
       const { error: userError } = await supabase
         .from('users')
         .insert({
@@ -166,7 +172,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Erreur lors de la création du profil utilisateur');
       }
 
-      return authData;
+      return { needsEmailConfirmation: false };
     } catch (error) {
       throw new Error(`Erreur d'inscription: ${error.message}`);
     } finally {

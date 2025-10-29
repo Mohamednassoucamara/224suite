@@ -73,9 +73,14 @@ const RegisterPage: React.FC = () => {
         role: userType === 'owner' ? 'user' : userType === 'agency' ? 'agent' : 'user'
       };
       
-      await signUp(userData);
-      setCurrentPage('dashboard');
-      showNotification('success', 'Compte créé avec succès. Bienvenue !');
+      const result = await signUp(userData);
+      if (result?.needsEmailConfirmation) {
+        showNotification('info', 'Inscription initiée. Veuillez confirmer votre email pour activer votre compte.');
+        setCurrentPage('home');
+      } else {
+        setCurrentPage('home');
+        showNotification('success', 'Compte créé avec succès. Bienvenue !');
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur d\'inscription';
       setError(errorMessage);
