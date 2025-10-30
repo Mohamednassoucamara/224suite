@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Home, Building, Users, Star, ArrowRight, Phone, Mail, MessageCircle, Filter } from 'lucide-react';
 import { useNavigation } from '../App';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
-import BackendStatus from '../components/BackendStatus';
 import PropertyCard from '../components/PropertyCard';
 import AdvancedSearch from '../components/AdvancedSearch';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -69,7 +68,6 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <BackendStatus />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-600 to-primary-800 text-white">
         <div className="absolute inset-0 bg-black/20"></div>
